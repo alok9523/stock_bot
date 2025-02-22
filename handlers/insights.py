@@ -18,8 +18,7 @@ def get_alpha_insights(symbol):
         if "Technical Analysis: RSI" not in rsi_data:
             return None, None, None, None
 
-        # Get the most recent date available
-latest_date = max(rsi_data["Technical Analysis: RSI"].keys())
+       latest_date = max(rsi_data["Technical Analysis: RSI"].keys())  
 latest_rsi = float(rsi_data["Technical Analysis: RSI"][latest_date]["RSI"])
 
         # Fetch MACD
@@ -30,8 +29,9 @@ latest_rsi = float(rsi_data["Technical Analysis: RSI"][latest_date]["RSI"])
         if "Technical Analysis: MACD" not in macd_data:
             return None, None, None, None
 
-        latest_macd = float(list(macd_data["Technical Analysis: MACD"].values())[0]["MACD"])
-        macd_signal = float(list(macd_data["Technical Analysis: MACD"].values())[0]["MACD_Signal"])
+        latest_date = max(macd_data["Technical Analysis: MACD"].keys())  
+latest_macd = float(macd_data["Technical Analysis: MACD"][latest_date]["MACD"])  
+macd_signal = float(macd_data["Technical Analysis: MACD"][latest_date]["MACD_Signal"])
 
         # Fetch SMA
         sma_url = f"{ALPHA_BASE_URL}?function=SMA&symbol={symbol}&interval=daily&time_period=50&series_type=close&apikey={ALPHA_VANTAGE_API_KEY}"
@@ -41,7 +41,8 @@ latest_rsi = float(rsi_data["Technical Analysis: RSI"][latest_date]["RSI"])
         if "Technical Analysis: SMA" not in sma_data:
             return None, None, None, None
 
-        latest_sma = float(list(sma_data["Technical Analysis: SMA"].values())[0]["SMA"])
+        latest_date = max(sma_data["Technical Analysis: SMA"].keys())  
+latest_sma = float(sma_data["Technical Analysis: SMA"][latest_date]["SMA"])
 
         return latest_rsi, latest_macd, macd_signal, latest_sma
 
