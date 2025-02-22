@@ -1,2 +1,7 @@
-python-telegram-bot # Adjust the version as per your needs
-requests==2.26.0            # Common for making HTTP requests
+python-telegram-bot
+requests
+matplotlib
+pandas
+numpy
+alpha_vantage
+openai
