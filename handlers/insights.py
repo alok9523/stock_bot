@@ -29,8 +29,7 @@ def get_insights(symbol):
 
         # Generate Insights
         insights = f"📊 **Stock Insights for {symbol.upper()}**\n"
-        insights += f"🔹 RSI: {latest_rsi:.2f} ({"Overbought" if latest_rsi > 70 else "Oversold" if latest_rsi < 30 else "Neutral"})\n"
-        insights += f"🔹 MACD: {latest_macd:.2f} ({"Bullish" if latest_macd > macd_signal else "Bearish"})\n"
+        insights += f"🔹 RSI: {latest_rsi:.2f} ({'Overbought' if latest_rsi > 70 else 'Oversold' if latest_rsi < 30 else 'Neutral'})\n"
         insights += f"🔹 SMA (50-day): {latest_sma:.2f}\n"
         insights += "📢 *Summary:* "
 
