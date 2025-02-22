@@ -59,8 +59,8 @@ def main():
     dp.add_handler(CommandHandler("alerts", view_alerts))
     dp.add_handler(CommandHandler("news", stock_news_handler))
     dp.add_handler(CommandHandler("insights", stock_insights_handler))
-    dp.add_handler(CommandHandler("chart", generate_stock_chart_handler))
-
+    dp.add_handler(CommandHandler("chart", stock_chart_handler))
+   
     # Start alert checker in a background thread
     start_alert_checker(bot, ALPHA_VANTAGE_API_KEY)
 
