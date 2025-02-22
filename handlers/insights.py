@@ -32,7 +32,7 @@ def get_stock_data(symbol: str, api_key: str):
         return None
 
 def generate_ai_insight(stock_data, gpt_api_key):
-    """Generate AI-powered insights using GPT-4o."""
+    """Generate AI-powered insights using GPT-4o (Updated for OpenAI v1.0)."""
     prompt = f"""
     Analyze the stock {stock_data['symbol']} based on the latest data:
     - Date: {stock_data['date']}
@@ -48,14 +48,17 @@ def generate_ai_insight(stock_data, gpt_api_key):
     - Short-term outlook (1-2 weeks)
     """
 
-    openai.api_key = gpt_api_key
-    response = openai.ChatCompletion.create(
+    client = openai.OpenAI(api_key=gpt_api_key)  # ✅ New OpenAI Client
+
+    response = client.chat.completions.create(
         model="gpt-4o",
-        messages=[{"role": "system", "content": "You are a financial analyst."},
-                  {"role": "user", "content": prompt}]
+        messages=[
+            {"role": "system", "content": "You are a financial analyst."},
+            {"role": "user", "content": prompt}
+        ]
     )
     
-    return response["choices"][0]["message"]["content"]
+    return response.choices[0].message.content  # ✅ Updated way to access response content
 
 def stock_insights_handler(update: Update, context: CallbackContext):
     """Telegram command handler for fetching AI-generated stock insights."""
