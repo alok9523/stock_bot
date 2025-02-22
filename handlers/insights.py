@@ -63,3 +63,16 @@ def get_insights(symbol):
         insights += "Market is neutral, trade with caution. ⚖️"
 
     return insights
+
+from telegram import Update
+from telegram.ext import CallbackContext
+
+def stock_insights_handler(update: Update, context: CallbackContext):
+    """Handles the /insights command by fetching and replying with stock insights."""
+    if not context.args:
+        update.message.reply_text("⚠️ Please provide a stock symbol. Example: `/insights AAPL`")
+        return
+
+    symbol = context.args[0].upper()
+    insights = get_insights(symbol)
+    update.message.reply_text(insights)
