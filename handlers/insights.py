@@ -1,79 +1,47 @@
 import requests
-import openai  # GPT-4o API
-from telegram import Update
-from telegram.ext import CallbackContext
+import os
 
-# Alpha Vantage API URL
+# Load Alpha Vantage API key from config
+from config import ALPHA_VANTAGE_API_KEY
+
 BASE_URL = "https://www.alphavantage.co/query"
 
-def get_stock_data(symbol: str, api_key: str):
-    """Fetch basic stock data for insights."""
-    params = {
-        "function": "TIME_SERIES_DAILY",
-        "symbol": symbol.upper(),
-        "apikey": api_key
-    }
-    response = requests.get(BASE_URL, params=params)
-    data = response.json()
-
-    if "Time Series (Daily)" in data:
-        latest_date = list(data["Time Series (Daily)"].keys())[0]
-        latest_data = data["Time Series (Daily)"][latest_date]
-        return {
-            "symbol": symbol.upper(),
-            "date": latest_date,
-            "open": latest_data["1. open"],
-            "high": latest_data["2. high"],
-            "low": latest_data["3. low"],
-            "close": latest_data["4. close"],
-            "volume": latest_data["5. volume"]
-        }
-    else:
-        return None
-
-def generate_ai_insight(stock_data, gpt_api_key):
-    """Generate AI-powered insights using GPT-4o (Updated for OpenAI v1.0)."""
-    prompt = f"""
-    Analyze the stock {stock_data['symbol']} based on the latest data:
-    - Date: {stock_data['date']}
-    - Open Price: {stock_data['open']}
-    - High Price: {stock_data['high']}
-    - Low Price: {stock_data['low']}
-    - Close Price: {stock_data['close']}
-    - Volume: {stock_data['volume']}
-
-    Provide insights on:
-    - Current market trend
-    - Potential opportunities or risks
-    - Short-term outlook (1-2 weeks)
+def get_insights(symbol):
     """
+    Fetch stock insights based on RSI, MACD, SMA, and EMA indicators.
+    """
+    try:
+        # Fetch RSI
+        rsi_url = f"{BASE_URL}?function=RSI&symbol={symbol}&interval=daily&time_period=14&series_type=close&apikey={ALPHA_VANTAGE_API_KEY}"
+        rsi_data = requests.get(rsi_url).json()
+        latest_rsi = float(list(rsi_data["Technical Analysis: RSI"].values())[0]["RSI"])
 
-    client = openai.OpenAI(api_key=gpt_api_key)  # ✅ New OpenAI Client
+        # Fetch MACD
+        macd_url = f"{BASE_URL}?function=MACD&symbol={symbol}&interval=daily&series_type=close&apikey={ALPHA_VANTAGE_API_KEY}"
+        macd_data = requests.get(macd_url).json()
+        latest_macd = float(list(macd_data["Technical Analysis: MACD"].values())[0]["MACD"])
+        macd_signal = float(list(macd_data["Technical Analysis: MACD"].values())[0]["MACD_Signal"])
 
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": "You are a financial analyst."},
-            {"role": "user", "content": prompt}
-        ]
-    )
-    
-    return response.choices[0].message.content  # ✅ Updated way to access response content
+        # Fetch SMA
+        sma_url = f"{BASE_URL}?function=SMA&symbol={symbol}&interval=daily&time_period=50&series_type=close&apikey={ALPHA_VANTAGE_API_KEY}"
+        sma_data = requests.get(sma_url).json()
+        latest_sma = float(list(sma_data["Technical Analysis: SMA"].values())[0]["SMA"])
 
-def stock_insights_handler(update: Update, context: CallbackContext):
-    """Telegram command handler for fetching AI-generated stock insights."""
-    if not context.args:
-        update.message.reply_text("⚡ Usage: /insights <stock_symbol>\nExample: /insights TSLA")
-        return
+        # Generate Insights
+        insights = f"📊 **Stock Insights for {symbol.upper()}**\n"
+        insights += f"🔹 RSI: {latest_rsi:.2f} ({"Overbought" if latest_rsi > 70 else "Oversold" if latest_rsi < 30 else "Neutral"})\n"
+        insights += f"🔹 MACD: {latest_macd:.2f} ({"Bullish" if latest_macd > macd_signal else "Bearish"})\n"
+        insights += f"🔹 SMA (50-day): {latest_sma:.2f}\n"
+        insights += "📢 *Summary:* "
 
-    symbol = context.args[0]
-    alpha_key = context.bot.data["ALPHA_VANTAGE_API_KEY"]
-    gpt_key = context.bot.data["GPT4O_API_KEY"]
+        if latest_rsi > 70 and latest_macd > macd_signal:
+            insights += "Stock might be **overbought**, consider selling. 📉"
+        elif latest_rsi < 30 and latest_macd < macd_signal:
+            insights += "Stock might be **oversold**, could be a buying opportunity. 📈"
+        else:
+            insights += "Market is neutral, trade with caution. ⚖️"
 
-    stock_data = get_stock_data(symbol, alpha_key)
-    if not stock_data:
-        update.message.reply_text("⚠️ Unable to fetch stock data. Please try again.")
-        return
+        return insights
 
-    insight = generate_ai_insight(stock_data, gpt_key)
-    update.message.reply_text(f"📊 *AI Insights for {symbol}*\n\n{insight}", parse_mode="Markdown")
+    except Exception as e:
+        return f"⚠️ Error fetching insights: {str(e)}"
