@@ -1,8 +1,11 @@
 import requests
 from config import ALPHA_VANTAGE_API_KEY, POLYGON_API_KEY
+from telegram import Update
+from telegram.ext import CallbackContext
 
 ALPHA_BASE_URL = "https://www.alphavantage.co/query"
 POLYGON_BASE_URL = "https://api.polygon.io/v2"
+
 
 def get_alpha_insights(symbol):
     """Fetch insights from Alpha Vantage (RSI, MACD, SMA)"""
@@ -64,3 +67,28 @@ def get_polygon_insights(symbol):
         print("Polygon API Error:", str(e))  # Debugging
         return None, None
 
+
+def stock_insights_handler(update: Update, context: CallbackContext):
+    """Handles the /insights command by fetching and replying with stock insights."""
+    if not context.args:
+        update.message.reply_text("⚠️ Please provide a stock symbol. Example: `/insights AAPL`")
+        return
+
+    symbol = context.args[0].upper()
+    rsi, macd, macd_signal, sma = get_alpha_insights(symbol)
+    close_price, volume = get_polygon_insights(symbol)
+
+    if rsi is None or macd is None or macd_signal is None or sma is None or close_price is None or volume is None:
+        update.message.reply_text(f"⚠️ Error fetching insights for {symbol}.")
+        return
+
+    insights_message = (
+        f"📊 **Stock Insights for {symbol}**\n\n"
+        f"🔹 RSI: {rsi:.2f}\n"
+        f"🔹 MACD: {macd:.2f} (Signal: {macd_signal:.2f})\n"
+        f"🔹 50-day SMA: {sma:.2f}\n"
+        f"💰 Close Price: {close_price:.2f}\n"
+        f"📈 Volume: {volume:,}"
+    )
+
+    update.message.reply_text(insights_message, parse_mode="Markdown")
