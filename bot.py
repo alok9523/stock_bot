@@ -8,7 +8,7 @@ from handlers.portfolio import add_stock, remove_stock, view_portfolio
 from handlers.alerts import set_alert, remove_alert, view_alerts, start_alert_checker
 from handlers.news import stock_news_handler
 from handlers.insights import stock_insights_handler
-from handlers.charts import generate_stock_chart_handler
+from handlers.charts import stock_chart_handler
 
 # Enable logging
 logging.basicConfig(
