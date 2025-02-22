@@ -18,7 +18,9 @@ def get_alpha_insights(symbol):
         if "Technical Analysis: RSI" not in rsi_data:
             return None, None, None, None
 
-        latest_rsi = float(list(rsi_data["Technical Analysis: RSI"].values())[0]["RSI"])
+        # Get the most recent date available
+latest_date = max(rsi_data["Technical Analysis: RSI"].keys())
+latest_rsi = float(rsi_data["Technical Analysis: RSI"][latest_date]["RSI"])
 
         # Fetch MACD
         macd_url = f"{ALPHA_BASE_URL}?function=MACD&symbol={symbol}&interval=daily&series_type=close&apikey={ALPHA_VANTAGE_API_KEY}"
