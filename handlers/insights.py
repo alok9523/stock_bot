@@ -44,3 +44,15 @@ def get_insights(symbol):
 
     except Exception as e:
         return f"⚠️ Error fetching insights: {str(e)}"
+from telegram import Update
+from telegram.ext import CallbackContext
+
+def stock_insights_handler(update: Update, context: CallbackContext):
+    """Handles /insights command"""
+    if not context.args:
+        update.message.reply_text("⚠️ Please provide a stock symbol. Example: `/insights AAPL`")
+        return
+
+    symbol = context.args[0].upper()
+    insights = get_insights(symbol)  # Ensure get_insights is correctly defined
+    update.message.reply_text(insights)
